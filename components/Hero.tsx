@@ -1,6 +1,8 @@
 'use client';
 
+import { useRef } from 'react';
 import Link from 'next/link';
+import { motion, useScroll, useTransform, useReducedMotion, type Variants } from 'framer-motion';
 import { useT } from '@/lib/i18n/context';
 import { IconBall, IconTrophy, IconArrow } from './Icons';
 
@@ -10,13 +12,36 @@ const columns = [
   { src: '/videos/hero-right.mp4', poster: '/videos/hero-right-poster.jpg', labelKey: 'hero.right', accent: 'from-neon-purple/30' },
 ];
 
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+const container: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } },
+};
+const item: Variants = {
+  hidden: { opacity: 0, y: 28, filter: 'blur(8px)' },
+  show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.85, ease: EASE } },
+};
+
 export function Hero() {
   const t = useT();
+  const reduce = useReducedMotion();
+  const ref = useRef<HTMLElement>(null);
+
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
+  // Soft parallax: video wall drifts + scales slightly; content lifts and fades.
+  const videoY = useTransform(scrollYProgress, [0, 1], ['0%', '12%']);
+  const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
+  const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '-18%']);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
   return (
-    <section className="relative min-h-[100svh] w-full overflow-hidden">
-      {/* Video wall */}
-      <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-3">
+    <section ref={ref} className="relative min-h-[100svh] w-full overflow-hidden">
+      {/* Video wall (parallax) */}
+      <motion.div
+        className="absolute inset-0 grid grid-cols-1 md:grid-cols-3"
+        style={reduce ? undefined : { y: videoY, scale: videoScale }}
+      >
         {columns.map((c, i) => (
           <div
             key={c.src}
@@ -48,41 +73,56 @@ export function Hero() {
             {i < 2 && <div className="absolute right-0 top-0 hidden h-full w-px bg-white/10 md:block" />}
           </div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Cinematic overlays */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/70 via-ink/40 to-ink" />
       <div className="pointer-events-none absolute inset-0 bg-ink/30" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_-10%,transparent_30%,rgba(5,6,10,0.5)_100%)]" />
+      {/* soft hero glow that breathes behind the headline */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[60vh] w-[60vh] -translate-x-1/2 -translate-y-1/2 rounded-full bg-neon-cyan/10 blur-3xl"
+        animate={reduce ? undefined : { opacity: [0.35, 0.6, 0.35], scale: [0.95, 1.05, 0.95] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
 
       {/* Content */}
-      <div className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-5 pt-20 text-center">
-        <span className="chip mb-6 animate-fade-in bg-black/30 backdrop-blur-md">
-          <IconBall width={14} height={14} className="text-neon-cyan" />
-          {t('hero.eyebrow')}
-        </span>
+      <motion.div
+        className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-5 pt-20 text-center"
+        style={reduce ? undefined : { y: contentY, opacity: contentOpacity }}
+      >
+        <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col items-center">
+          <motion.span variants={item} className="chip mb-6 bg-black/30 backdrop-blur-md">
+            <IconBall width={14} height={14} className="text-neon-cyan" />
+            {t('hero.eyebrow')}
+          </motion.span>
 
-        <h1 className="animate-fade-up text-balance text-5xl font-black leading-[0.95] tracking-tight text-white drop-shadow-[0_2px_30px_rgba(0,0,0,0.6)] sm:text-7xl md:text-8xl">
-          <span className="text-gradient-anim">PLAY.</span>{' '}
-          <span className="text-white">CONNECT.</span>{' '}
-          <span className="text-gradient-anim">COMPETE.</span>
-        </h1>
+          <motion.h1
+            variants={item}
+            className="text-balance text-5xl font-black leading-[0.95] tracking-tight text-white drop-shadow-[0_2px_30px_rgba(0,0,0,0.6)] sm:text-7xl md:text-8xl"
+          >
+            <span className="text-gradient-anim">PLAY.</span>{' '}
+            <span className="text-white">CONNECT.</span>{' '}
+            <span className="text-gradient-anim">COMPETE.</span>
+          </motion.h1>
 
-        <p className="mt-6 max-w-2xl animate-fade-up text-balance text-base text-white/75 sm:text-lg" style={{ animationDelay: '120ms' }}>
-          {t('hero.subtitle')}
-        </p>
+          <motion.p variants={item} className="mt-6 max-w-2xl text-balance text-base text-white/75 sm:text-lg">
+            {t('hero.subtitle')}
+          </motion.p>
 
-        <div className="mt-9 flex animate-fade-up flex-col items-center gap-3 sm:flex-row" style={{ animationDelay: '220ms' }}>
-          <Link href="/events" className="btn-primary w-full sm:w-auto">
-            <IconBall width={18} height={18} />
-            {t('cta.findMatch')}
-          </Link>
-          <Link href="/tournaments" className="btn-secondary w-full sm:w-auto">
-            <IconTrophy width={18} height={18} />
-            {t('cta.viewTournaments')}
-          </Link>
-        </div>
-      </div>
+          <motion.div variants={item} className="mt-9 flex flex-col items-center gap-3 sm:flex-row">
+            <Link href="/events" className="btn-primary w-full sm:w-auto">
+              <IconBall width={18} height={18} />
+              {t('cta.findMatch')}
+            </Link>
+            <Link href="/tournaments" className="btn-secondary w-full sm:w-auto">
+              <IconTrophy width={18} height={18} />
+              {t('cta.viewTournaments')}
+            </Link>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Scroll hint */}
       <div className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 animate-pulse-glow">

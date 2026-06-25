@@ -1,12 +1,17 @@
 'use client';
 
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { Hero } from '@/components/Hero';
-import { Reveal } from '@/components/Reveal';
 import { SectionHeading } from '@/components/SectionHeading';
 import { EventCard } from '@/components/EventCard';
 import { GlassCard } from '@/components/GlassCard';
 import { Badge } from '@/components/RoleBadge';
+import { JourneyBall } from '@/components/journey/JourneyBall';
+import { CountUp } from '@/components/journey/CountUp';
+import { StaggerGroup, StaggerItem, Reveal } from '@/components/journey/primitives';
+import { ConnectionLines } from '@/components/journey/ConnectionLines';
+import { TournamentBracket } from '@/components/journey/TournamentBracket';
 import { useI18n } from '@/lib/i18n/context';
 import { sampleEvents, testimonials } from '@/lib/data/sampleEvents';
 import {
@@ -23,6 +28,8 @@ import {
   IconCheck,
   IconSpark,
 } from '@/components/Icons';
+
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 export default function HomePage() {
   const { t } = useI18n();
@@ -45,28 +52,33 @@ export default function HomePage() {
 
   return (
     <>
+      {/* The Match Journey guide — a single ambient orb woven through the page */}
+      <JourneyBall />
+
       <Hero />
 
-      {/* Stats */}
-      <section className="border-y border-white/5 bg-ink-800/40">
-        <div className="container-x grid grid-cols-2 gap-6 py-12 md:grid-cols-4">
-          {stats.map((s, i) => (
-            <Reveal key={s.label} delay={i * 80} className="text-center">
-              <div className="text-3xl font-extrabold text-gradient sm:text-4xl">{s.value}</div>
+      {/* Stats — "Join Matches": cards rise + numbers count up */}
+      <section id="journey-matches" className="border-y border-white/5 bg-ink-800/40">
+        <StaggerGroup className="container-x grid grid-cols-2 gap-6 py-12 md:grid-cols-4">
+          {stats.map((s) => (
+            <StaggerItem key={s.label} className="text-center">
+              <div className="text-3xl font-extrabold text-gradient sm:text-4xl">
+                <CountUp value={s.value} />
+              </div>
               <div className="mt-1 text-sm uppercase tracking-wide text-white/50">{s.label}</div>
-            </Reveal>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
       </section>
 
-      {/* How it works */}
-      <section className="container-x py-20 sm:py-28">
+      {/* How it works — "Find Players" */}
+      <section id="journey-find" className="container-x py-20 sm:py-28">
         <Reveal>
           <SectionHeading eyebrow={t('how.eyebrow')} title={t('how.title')} subtitle={t('how.subtitle')} />
         </Reveal>
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        <StaggerGroup className="mt-12 grid gap-6 md:grid-cols-3">
           {steps.map((s, i) => (
-            <Reveal key={s.title} delay={i * 100}>
+            <StaggerItem key={s.title}>
               <GlassCard hover className="h-full">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-neon-cyan/10 text-neon-cyan ring-1 ring-neon-cyan/30">
                   <s.icon className="h-6 w-6" />
@@ -77,19 +89,22 @@ export default function HomePage() {
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-white/60">{s.body}</p>
               </GlassCard>
-            </Reveal>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
       </section>
 
-      {/* Event types */}
-      <section className="relative overflow-hidden border-y border-white/5 bg-ink-800/30 py-20 sm:py-28">
+      {/* Event types — "Join Tournaments": self-drawing bracket */}
+      <section id="journey-tournaments" className="relative overflow-hidden border-y border-white/5 bg-ink-800/30 py-20 sm:py-28">
         <div className="container-x">
           <Reveal>
             <SectionHeading eyebrow={t('types.eyebrow')} title={t('types.title')} />
           </Reveal>
+          <div className="mx-auto mt-10 max-w-2xl">
+            <TournamentBracket />
+          </div>
           <div className="mt-12 grid gap-6 lg:grid-cols-2">
-            <Reveal>
+            <Reveal direction="right">
               <div className="glass glass-hover h-full overflow-hidden p-8">
                 <div className="flex items-center gap-3">
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-neon-purple/10 text-neon-purple ring-1 ring-neon-purple/30">
@@ -104,7 +119,7 @@ export default function HomePage() {
                 </Link>
               </div>
             </Reveal>
-            <Reveal delay={100}>
+            <Reveal direction="left">
               <div className="glass glass-hover h-full overflow-hidden p-8">
                 <div className="flex items-center gap-3">
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-neon-cyan/10 text-neon-cyan ring-1 ring-neon-cyan/30">
@@ -127,8 +142,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured events */}
-      <section className="container-x py-20 sm:py-28">
+      {/* Featured events — "Compete": alternating staggered cards */}
+      <section id="journey-compete" className="container-x py-20 sm:py-28">
         <Reveal>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <SectionHeading align="left" eyebrow={t('discover.featured')} title={t('discover.title')} subtitle={t('discover.subtitle')} />
@@ -137,20 +152,20 @@ export default function HomePage() {
             </Link>
           </div>
         </Reveal>
-        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <StaggerGroup className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3" stagger={0.12}>
           {fallback.map((e, i) => (
-            <Reveal key={e.id} delay={i * 90}>
+            <StaggerItem key={e.id} direction={i % 2 === 0 ? 'left' : 'right'}>
               <EventCard event={e} />
-            </Reveal>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
       </section>
 
-      {/* Organizer + social CTA */}
-      <section className="relative overflow-hidden border-y border-white/5 py-20 sm:py-28">
+      {/* Organizer + social CTA — "Build Connections" */}
+      <section id="journey-connections" className="relative overflow-hidden border-y border-white/5 py-20 sm:py-28">
         <div className="absolute inset-0 bg-neon-gradient opacity-[0.08]" aria-hidden />
         <div className="container-x relative grid items-center gap-12 lg:grid-cols-2">
-          <Reveal>
+          <Reveal direction="right">
             <span className="chip mb-4">{t('org.eyebrow')}</span>
             <h2 className="text-3xl font-extrabold text-white sm:text-4xl">{t('org.title')}</h2>
             <p className="mt-4 text-white/60">{t('org.subtitle')}</p>
@@ -177,7 +192,7 @@ export default function HomePage() {
             </div>
           </Reveal>
 
-          <Reveal delay={120}>
+          <Reveal direction="left" delay={120}>
             <GlassCard className="relative">
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-neon-purple/10 text-neon-purple ring-1 ring-neon-purple/30">
@@ -203,14 +218,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="container-x py-20 sm:py-28">
+      {/* Testimonials — "Become Part of the Community": animated connection lines */}
+      <section id="journey-community" className="container-x py-20 sm:py-28">
         <Reveal>
           <SectionHeading eyebrow={t('community.eyebrow')} title={t('community.testimonials')} />
         </Reveal>
-        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {testimonials.map((tm, i) => (
-            <Reveal key={tm.id} delay={i * 80}>
+        <div className="mx-auto mt-10 max-w-3xl opacity-80">
+          <ConnectionLines />
+        </div>
+        <StaggerGroup className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4" stagger={0.08}>
+          {testimonials.map((tm) => (
+            <StaggerItem key={tm.id}>
               <GlassCard hover className="h-full">
                 <p className="text-sm leading-relaxed text-white/75">“{tm.quote}”</p>
                 <div className="mt-5 flex items-center gap-3">
@@ -223,32 +241,42 @@ export default function HomePage() {
                   </div>
                 </div>
               </GlassCard>
-            </Reveal>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
       </section>
 
-      {/* Final CTA */}
-      <section className="container-x pb-24">
-        <Reveal>
-          <div className="glass relative overflow-hidden px-6 py-14 text-center sm:px-12 sm:py-20">
-            <div className="absolute inset-0 bg-neon-gradient opacity-10" aria-hidden />
-            <div className="relative">
-              <h2 className="text-3xl font-extrabold text-white sm:text-5xl">
-                {t('hero.title')}
-              </h2>
-              <p className="mx-auto mt-4 max-w-xl text-white/60">{t('community.subtitle')}</p>
-              <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Link href="/events" className="btn btn-primary">
-                  {t('cta.findMatch')}
-                </Link>
-                <Link href="/register" className="btn btn-secondary">
-                  {t('cta.getStarted')}
-                </Link>
-              </div>
+      {/* Final CTA — the journey arrives */}
+      <section id="journey-register" className="container-x pb-24">
+        <motion.div
+          initial={{ opacity: 0, y: 40, scale: 0.97 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.9, ease: EASE }}
+          className="glass relative overflow-hidden px-6 py-14 text-center sm:px-12 sm:py-20"
+        >
+          <div className="absolute inset-0 bg-neon-gradient opacity-10" aria-hidden />
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-neon-lime/20 blur-3xl"
+            initial={{ opacity: 0, scale: 0.6 }}
+            whileInView={{ opacity: [0, 0.8, 0.45], scale: 1 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 1.4, ease: 'easeOut', delay: 0.3 }}
+          />
+          <div className="relative">
+            <h2 className="text-3xl font-extrabold text-white sm:text-5xl">{t('hero.title')}</h2>
+            <p className="mx-auto mt-4 max-w-xl text-white/60">{t('community.subtitle')}</p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <Link href="/events" className="btn btn-primary">
+                {t('cta.findMatch')}
+              </Link>
+              <Link href="/register" className="btn btn-secondary">
+                {t('cta.getStarted')}
+              </Link>
             </div>
           </div>
-        </Reveal>
+        </motion.div>
       </section>
     </>
   );
