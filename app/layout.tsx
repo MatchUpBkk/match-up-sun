@@ -62,6 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let initialUser: { id: string; email: string | null } | null = null;
   let initialRole: AppRole | null = null;
   let initialName: string | null = null;
+  let initialAvatar: string | null = null;
 
   const supabase = createServerSupabase();
   if (supabase) {
@@ -72,18 +73,24 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       initialUser = { id: user.id, email: user.email ?? null };
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role, full_name')
+        .select('role, full_name, avatar_url')
         .eq('id', user.id)
         .single();
       initialRole = toRole(profile?.role ?? user.user_metadata?.role);
       initialName = (profile?.full_name as string) ?? (user.user_metadata?.full_name as string) ?? null;
+      initialAvatar = (profile?.avatar_url as string) ?? null;
     }
   }
 
   return (
     <html lang="en" className={`${inter.variable} ${sora.variable}`} suppressHydrationWarning>
       <body className="bg-ink text-white antialiased">
-        <Providers initialUser={initialUser} initialRole={initialRole} initialName={initialName}>
+        <Providers
+          initialUser={initialUser}
+          initialRole={initialRole}
+          initialName={initialName}
+          initialAvatar={initialAvatar}
+        >
           {children}
         </Providers>
       </body>

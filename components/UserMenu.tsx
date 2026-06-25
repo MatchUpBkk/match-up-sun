@@ -8,7 +8,7 @@ import { dashboardPathForRole } from '@/lib/auth/roles';
 
 export function UserMenu({ mobile = false }: { mobile?: boolean }) {
   const t = useT();
-  const { user, role, fullName, signOut } = useAuth();
+  const { user, role, fullName, avatarUrl, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -31,7 +31,7 @@ export function UserMenu({ mobile = false }: { mobile?: boolean }) {
         <Link href={dash} className="btn-ghost justify-start">
           {t('nav.dashboard')}
         </Link>
-        <Link href={`${dash}?tab=profile`} className="btn-ghost justify-start">
+        <Link href="/dashboard/profile" className="btn-ghost justify-start">
           {t('nav.profile')}
         </Link>
         <button type="button" onClick={() => signOut()} className="btn-secondary justify-start">
@@ -50,8 +50,13 @@ export function UserMenu({ mobile = false }: { mobile?: boolean }) {
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-neon-cyan/40 to-neon-purple/40 text-xs font-bold text-white">
-          {initial}
+        <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-neon-cyan/40 to-neon-purple/40 text-xs font-bold text-white">
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+          ) : (
+            initial
+          )}
         </span>
         <span className="hidden max-w-[120px] truncate md:inline">{fullName || user.email}</span>
       </button>
@@ -69,7 +74,7 @@ export function UserMenu({ mobile = false }: { mobile?: boolean }) {
             {t('nav.dashboard')}
           </Link>
           <Link
-            href={`${dash}?tab=profile`}
+            href="/dashboard/profile"
             role="menuitem"
             className="block px-4 py-2.5 text-sm text-white/80 transition hover:bg-white/5 hover:text-white"
           >

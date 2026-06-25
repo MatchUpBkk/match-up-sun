@@ -12,14 +12,21 @@ export function Providers({
   initialUser = null,
   initialRole = null,
   initialName = null,
+  initialAvatar = null,
 }: {
   children: ReactNode;
   initialUser?: { id: string; email: string | null } | null;
   initialRole?: AppRole | null;
   initialName?: string | null;
+  initialAvatar?: string | null;
 }) {
   return (
-    <AuthProvider initialUser={initialUser} initialRole={initialRole} initialName={initialName}>
+    <AuthProvider
+      initialUser={initialUser}
+      initialRole={initialRole}
+      initialName={initialName}
+      initialAvatar={initialAvatar}
+    >
       <I18nProvider>
         <Navbar />
         <main className="min-h-screen">{children}</main>

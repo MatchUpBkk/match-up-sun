@@ -103,29 +103,10 @@ export default function PlayerDashboard() {
       icon: IconUsers,
       content: (
         <DataPanel title={t('dash.player.profile')}>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="label">{t('auth.name')}</label>
-              <input className="input" defaultValue="Alex Player" />
-            </div>
-            <div>
-              <label className="label">{t('auth.email')}</label>
-              <input className="input" defaultValue="alex@example.com" />
-            </div>
-            <div>
-              <label className="label">{t('discover.level')}</label>
-              <select className="input" defaultValue="intermediate">
-                <option value="beginner">{t('level.beginner')}</option>
-                <option value="intermediate">{t('level.intermediate')}</option>
-                <option value="advanced">{t('level.advanced')}</option>
-              </select>
-            </div>
-            <div>
-              <label className="label">{t('discover.location')}</label>
-              <input className="input" defaultValue="Bangkok" />
-            </div>
-          </div>
-          <button className="btn btn-primary mt-5">{t('contact.send')}</button>
+          <p className="text-sm text-white/60">{t('profile.subtitle')}</p>
+          <Link href="/dashboard/profile" className="btn btn-primary mt-5 inline-flex">
+            {t('nav.profile')}
+          </Link>
         </DataPanel>
       ),
     },
