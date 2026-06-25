@@ -1,13 +1,14 @@
 'use client';
 
 /**
- * ConnectionLines — a decorative network of players that draws itself when the
- * Community section scrolls into view: links animate via pathLength, nodes fade
- * and pulse in. Purely ambient (pointer-events-none); reduced-motion users get
- * the finished network with no drawing animation.
+ * ConnectionLines — a quiet, network-inspired motif for the Community section.
+ * Links draw themselves once on view, then a slow pulse flows outward along the
+ * main spokes and the hub gently breathes — enough to feel alive, never busy.
+ * Purely decorative (pointer-events-none); static for reduced-motion users.
  */
 
 import { motion, useReducedMotion } from 'framer-motion';
+import { EASE } from './tokens';
 
 const NODES = [
   { id: 'hub', x: 400, y: 90, r: 7, hub: true },
@@ -20,19 +21,19 @@ const NODES = [
   { id: 'n7', x: 330, y: 30, r: 3 },
 ];
 
-const LINKS: Array<[string, string]> = [
-  ['hub', 'n1'],
-  ['hub', 'n2'],
-  ['hub', 'n3'],
-  ['hub', 'n4'],
-  ['hub', 'n7'],
-  ['n2', 'n5'],
-  ['n3', 'n6'],
-  ['n1', 'n7'],
+const LINKS: Array<[string, string, boolean]> = [
+  // [from, to, isSpoke]
+  ['hub', 'n1', true],
+  ['hub', 'n2', true],
+  ['hub', 'n3', true],
+  ['hub', 'n4', true],
+  ['hub', 'n7', true],
+  ['n2', 'n5', false],
+  ['n3', 'n6', false],
+  ['n1', 'n7', false],
 ];
 
 const byId = (id: string) => NODES.find((n) => n.id === id)!;
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function ConnectionLines({ className }: { className?: string }) {
   const reduce = useReducedMotion();
@@ -56,24 +57,42 @@ export function ConnectionLines({ className }: { className?: string }) {
         </radialGradient>
       </defs>
 
-      {LINKS.map(([a, b], i) => {
+      {LINKS.map(([a, b, spoke], i) => {
         const na = byId(a);
         const nb = byId(b);
         return (
-          <motion.line
-            key={`${a}-${b}`}
-            x1={na.x}
-            y1={na.y}
-            x2={nb.x}
-            y2={nb.y}
-            stroke="url(#cl-stroke)"
-            strokeWidth={1.2}
-            strokeOpacity={0.5}
-            initial={reduce ? { pathLength: 1, opacity: 0.5 } : { pathLength: 0, opacity: 0 }}
-            whileInView={{ pathLength: 1, opacity: 0.5 }}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 0.9, ease: EASE, delay: reduce ? 0 : 0.15 + i * 0.08 }}
-          />
+          <g key={`${a}-${b}`}>
+            <motion.line
+              x1={na.x}
+              y1={na.y}
+              x2={nb.x}
+              y2={nb.y}
+              stroke="url(#cl-stroke)"
+              strokeWidth={1.2}
+              strokeOpacity={0.45}
+              initial={reduce ? { pathLength: 1, opacity: 0.45 } : { pathLength: 0, opacity: 0 }}
+              whileInView={{ pathLength: 1, opacity: 0.45 }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ duration: 0.9, ease: EASE, delay: reduce ? 0 : 0.1 + i * 0.07 }}
+            />
+            {/* slow flowing pulse along the main spokes */}
+            {spoke && !reduce && (
+              <motion.line
+                x1={na.x}
+                y1={na.y}
+                x2={nb.x}
+                y2={nb.y}
+                stroke="#ffffff"
+                strokeWidth={1.4}
+                strokeLinecap="round"
+                strokeDasharray="3 180"
+                initial={{ opacity: 0, strokeDashoffset: 0 }}
+                whileInView={{ opacity: [0, 0.7, 0], strokeDashoffset: [0, -183] }}
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{ duration: 3.4, ease: 'easeInOut', repeat: Infinity, repeatDelay: 1.6, delay: 1 + i * 0.25 }}
+              />
+            )}
+          </g>
         );
       })}
 
@@ -85,11 +104,21 @@ export function ConnectionLines({ className }: { className?: string }) {
             cy={n.y}
             r={n.r}
             fill={n.hub ? '#22e0ff' : '#ffffff'}
-            fillOpacity={n.hub ? 1 : 0.75}
+            fillOpacity={n.hub ? 1 : 0.7}
             initial={reduce ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
+            whileInView={
+              reduce
+                ? { scale: 1, opacity: 1 }
+                : n.hub
+                  ? { scale: [1, 1.18, 1], opacity: 1 }
+                  : { scale: 1, opacity: 1 }
+            }
             viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 0.5, ease: EASE, delay: reduce ? 0 : 0.3 + i * 0.07 }}
+            transition={
+              n.hub && !reduce
+                ? { scale: { duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }, opacity: { duration: 0.5, delay: 0.3 } }
+                : { duration: 0.5, ease: EASE, delay: reduce ? 0 : 0.3 + i * 0.06 }
+            }
             style={{ transformOrigin: `${n.x}px ${n.y}px` }}
           />
         </g>

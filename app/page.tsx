@@ -7,11 +7,12 @@ import { SectionHeading } from '@/components/SectionHeading';
 import { EventCard } from '@/components/EventCard';
 import { GlassCard } from '@/components/GlassCard';
 import { Badge } from '@/components/RoleBadge';
-import { JourneyBall } from '@/components/journey/JourneyBall';
 import { CountUp } from '@/components/journey/CountUp';
 import { StaggerGroup, StaggerItem, Reveal } from '@/components/journey/primitives';
 import { ConnectionLines } from '@/components/journey/ConnectionLines';
 import { TournamentBracket } from '@/components/journey/TournamentBracket';
+import { CinematicCard } from '@/components/journey/CinematicCard';
+import { Parallax } from '@/components/journey/Parallax';
 import { useI18n } from '@/lib/i18n/context';
 import { sampleEvents, testimonials } from '@/lib/data/sampleEvents';
 import {
@@ -52,13 +53,10 @@ export default function HomePage() {
 
   return (
     <>
-      {/* The Match Journey guide — a single ambient orb woven through the page */}
-      <JourneyBall />
-
       <Hero />
 
       {/* Stats — "Join Matches": cards rise + numbers count up */}
-      <section id="journey-matches" className="border-y border-white/5 bg-ink-800/40">
+      <section id="s-matches" className="border-y border-white/5 bg-ink-800/40">
         <StaggerGroup className="container-x grid grid-cols-2 gap-6 py-12 md:grid-cols-4">
           {stats.map((s) => (
             <StaggerItem key={s.label} className="text-center">
@@ -72,7 +70,7 @@ export default function HomePage() {
       </section>
 
       {/* How it works — "Find Players" */}
-      <section id="journey-find" className="container-x py-20 sm:py-28">
+      <section id="s-find" className="container-x py-20 sm:py-28">
         <Reveal>
           <SectionHeading eyebrow={t('how.eyebrow')} title={t('how.title')} subtitle={t('how.subtitle')} />
         </Reveal>
@@ -95,7 +93,7 @@ export default function HomePage() {
       </section>
 
       {/* Event types — "Join Tournaments": self-drawing bracket */}
-      <section id="journey-tournaments" className="relative overflow-hidden border-y border-white/5 bg-ink-800/30 py-20 sm:py-28">
+      <section id="s-tournaments" className="relative overflow-hidden border-y border-white/5 bg-ink-800/30 py-20 sm:py-28">
         <div className="container-x">
           <Reveal>
             <SectionHeading eyebrow={t('types.eyebrow')} title={t('types.title')} />
@@ -143,7 +141,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured events — "Compete": alternating staggered cards */}
-      <section id="journey-compete" className="container-x py-20 sm:py-28">
+      <section id="s-compete" className="container-x py-20 sm:py-28">
         <Reveal>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <SectionHeading align="left" eyebrow={t('discover.featured')} title={t('discover.title')} subtitle={t('discover.subtitle')} />
@@ -152,18 +150,22 @@ export default function HomePage() {
             </Link>
           </div>
         </Reveal>
-        <StaggerGroup className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3" stagger={0.12}>
-          {fallback.map((e, i) => (
-            <StaggerItem key={e.id} direction={i % 2 === 0 ? 'left' : 'right'}>
-              <EventCard event={e} />
+        <StaggerGroup className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3" stagger={0.1}>
+          {fallback.map((e) => (
+            <StaggerItem key={e.id} className="h-full">
+              <CinematicCard className="h-full">
+                <EventCard event={e} />
+              </CinematicCard>
             </StaggerItem>
           ))}
         </StaggerGroup>
       </section>
 
       {/* Organizer + social CTA — "Build Connections" */}
-      <section id="journey-connections" className="relative overflow-hidden border-y border-white/5 py-20 sm:py-28">
-        <div className="absolute inset-0 bg-neon-gradient opacity-[0.08]" aria-hidden />
+      <section id="s-connections" className="relative overflow-hidden border-y border-white/5 py-20 sm:py-28">
+        <Parallax className="pointer-events-none absolute inset-x-0 -inset-y-12" from={-24} to={24}>
+          <div className="h-full w-full bg-neon-gradient opacity-[0.08]" aria-hidden />
+        </Parallax>
         <div className="container-x relative grid items-center gap-12 lg:grid-cols-2">
           <Reveal direction="right">
             <span className="chip mb-4">{t('org.eyebrow')}</span>
@@ -219,7 +221,7 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials — "Become Part of the Community": animated connection lines */}
-      <section id="journey-community" className="container-x py-20 sm:py-28">
+      <section id="s-community" className="container-x py-20 sm:py-28">
         <Reveal>
           <SectionHeading eyebrow={t('community.eyebrow')} title={t('community.testimonials')} />
         </Reveal>
@@ -247,7 +249,7 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA — the journey arrives */}
-      <section id="journey-register" className="container-x pb-24">
+      <section id="s-register" className="container-x pb-24">
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.97 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}

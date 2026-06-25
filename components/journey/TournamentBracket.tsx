@@ -140,6 +140,23 @@ export function TournamentBracket({ className }: { className?: string }) {
         viewport={{ once: true, amount: 0.4 }}
         transition={{ duration: 0.6, ease: EASE, delay: reduce ? 0 : 1.9 }}
       />
+
+      {/* champion impact bloom — a single energy ring as the winner lands */}
+      {!reduce && (
+        <motion.circle
+          cx={CHAMP.x}
+          cy={CHAMP.y}
+          r={7}
+          fill="none"
+          stroke="#9ef01a"
+          strokeWidth={2}
+          initial={{ scale: 0.2, opacity: 0 }}
+          whileInView={{ scale: [0.2, 3.2], opacity: [0.9, 0] }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 1.1, ease: 'easeOut', delay: 2.1 }}
+          style={{ transformOrigin: `${CHAMP.x}px ${CHAMP.y}px` }}
+        />
+      )}
     </svg>
   );
 }

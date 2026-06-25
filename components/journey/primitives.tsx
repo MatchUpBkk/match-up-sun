@@ -1,16 +1,15 @@
 'use client';
 
 /**
- * Shared Framer Motion reveal primitives for the "Match Journey" experience.
- * All of these respect `prefers-reduced-motion` (they render their final,
- * static state when the user opts out of motion) and animate only transform +
- * opacity so they stay GPU-cheap and never trigger layout.
+ * Shared reveal primitives for the cinematic section system. Restrained by
+ * design: a single, consistent "settle" (rise + gentle scale + fade) on an
+ * effortless ease. Respects prefers-reduced-motion and animates only
+ * transform/opacity so it stays crisp and GPU-cheap.
  */
 
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import type { ReactNode } from 'react';
-
-const EASE = [0.16, 1, 0.3, 1] as const;
+import { EASE, DUR } from './tokens';
 
 type Direction = 'up' | 'down' | 'left' | 'right';
 
@@ -33,7 +32,7 @@ export function Reveal({
   children,
   direction = 'up',
   delay = 0,
-  distance = 26,
+  distance = 22,
   className,
   amount = 0.3,
 }: {
@@ -53,21 +52,19 @@ export function Reveal({
       initial={reduce ? { opacity: 0 } : { opacity: 0, ...from }}
       whileInView={reduce ? { opacity: 1 } : { opacity: 1, x: 0, y: 0 }}
       viewport={{ once: true, amount }}
-      transition={{ duration: 0.7, ease: EASE, delay: delay / 1000 }}
+      transition={{ duration: DUR.base, ease: EASE, delay: delay / 1000 }}
     >
       {children}
     </motion.div>
   );
 }
 
-/**
- * Container that staggers its <StaggerItem> children as the group scrolls in.
- */
+/** Container that staggers its <StaggerItem> children as the group scrolls in. */
 export function StaggerGroup({
   children,
   className,
-  stagger = 0.1,
-  delayChildren = 0.05,
+  stagger = 0.09,
+  delayChildren = 0.04,
   amount = 0.2,
 }: {
   children: ReactNode;
@@ -78,9 +75,7 @@ export function StaggerGroup({
 }) {
   const variants: Variants = {
     hidden: {},
-    show: {
-      transition: { staggerChildren: stagger, delayChildren },
-    },
+    show: { transition: { staggerChildren: stagger, delayChildren } },
   };
 
   return (
@@ -99,7 +94,7 @@ export function StaggerGroup({
 export function StaggerItem({
   children,
   direction = 'up',
-  distance = 28,
+  distance = 24,
   className,
 }: {
   children: ReactNode;
@@ -111,10 +106,10 @@ export function StaggerItem({
   const from = offsetFor(direction, distance);
 
   const variants: Variants = {
-    hidden: reduce ? { opacity: 0 } : { opacity: 0, ...from },
+    hidden: reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, ...from },
     show: reduce
-      ? { opacity: 1, transition: { duration: 0.4 } }
-      : { opacity: 1, x: 0, y: 0, transition: { duration: 0.7, ease: EASE } },
+      ? { opacity: 1, transition: { duration: DUR.fast } }
+      : { opacity: 1, x: 0, y: 0, scale: 1, transition: { duration: DUR.base, ease: EASE } },
   };
 
   return (
