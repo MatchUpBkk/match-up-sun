@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { DashLayout, StatTile, DataPanel, type DashTab } from '@/components/dashboard/DashLayout';
+import { OrganizerEventsPanel } from '@/components/organizer/OrganizerEventsPanel';
 import { Badge } from '@/components/RoleBadge';
 import { useI18n } from '@/lib/i18n/context';
-import { sampleEvents } from '@/lib/data/sampleEvents';
-import { formatDate, formatTHB, downloadCSV } from '@/lib/utils';
+import { downloadCSV } from '@/lib/utils';
 import {
   IconCalendar,
   IconUsers,
@@ -13,8 +13,6 @@ import {
   IconShield,
   IconCheck,
   IconChart,
-  IconTrophy,
-  IconBall,
 } from '@/components/Icons';
 
 const sampleParticipants = [
@@ -25,93 +23,15 @@ const sampleParticipants = [
 ];
 
 export default function OrganizerDashboard() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [verifStatus] = useState<'pending' | 'approved'>('pending');
-  const myEvents = sampleEvents.slice(0, 4);
 
   const tabs: DashTab[] = [
     {
       key: 'events',
       label: t('dash.organizer.myEvents'),
       icon: IconCalendar,
-      content: (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <StatTile label={t('dash.organizer.myEvents')} value="4" accent="cyan" />
-            <StatTile label={t('stats.players')} value="186" accent="purple" />
-            <StatTile label={t('dash.player.payments')} value="฿74,600" accent="lime" />
-            <StatTile label={t('discover.featured')} value="2" accent="cyan" />
-          </div>
-          <DataPanel title={t('dash.organizer.myEvents')}>
-            <ul className="divide-y divide-white/5">
-              {myEvents.map((e) => (
-                <li key={e.id} className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0 last:pb-0">
-                  <div className="flex items-center gap-3">
-                    <span className={`flex h-10 w-10 items-center justify-center rounded-lg ${e.type === 'tournament' ? 'bg-neon-purple/10 text-neon-purple' : 'bg-neon-cyan/10 text-neon-cyan'}`}>
-                      {e.type === 'tournament' ? <IconTrophy className="h-5 w-5" /> : <IconBall className="h-5 w-5" />}
-                    </span>
-                    <div>
-                      <p className="font-semibold text-white">{e.title}</p>
-                      <p className="text-xs text-white/50">{formatDate(e.date, locale)} · {e.location}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {e.featured && <Badge label={t('discover.featured')} variant="featured" />}
-                    <button className="btn btn-ghost px-3 py-1.5 text-xs">{t('dash.organizer.participants')}</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </DataPanel>
-        </div>
-      ),
-    },
-    {
-      key: 'create',
-      label: t('dash.organizer.create'),
-      icon: IconCheck,
-      content: (
-        <DataPanel title={t('dash.organizer.create')}>
-          {verifStatus !== 'approved' && (
-            <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3">
-              <IconShield className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
-              <p className="text-sm text-amber-200/90">{t('org.verify.body')}</p>
-            </div>
-          )}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <label className="label">{t('contact.subject')}</label>
-              <input className="input" placeholder="Wednesday Night Match — 90 Min · 3 Teams" />
-            </div>
-            <div>
-              <label className="label">{t('discover.type')}</label>
-              <select className="input">
-                <option value="session">{t('discover.type.session')}</option>
-                <option value="tournament">{t('discover.type.tournament')}</option>
-              </select>
-            </div>
-            <div>
-              <label className="label">{t('discover.location')}</label>
-              <input className="input" placeholder="Bangkok" />
-            </div>
-            <div>
-              <label className="label">{t('discover.date')}</label>
-              <input type="date" className="input" />
-            </div>
-            <div>
-              <label className="label">{t('event.price')}</label>
-              <input type="number" className="input" placeholder="250" />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="label">{t('contact.message')}</label>
-              <textarea className="input min-h-[120px] resize-y" />
-            </div>
-          </div>
-          <button className="btn btn-primary mt-5" disabled={verifStatus !== 'approved'}>
-            {t('dash.organizer.create')}
-          </button>
-        </DataPanel>
-      ),
+      content: <OrganizerEventsPanel />,
     },
     {
       key: 'participants',
