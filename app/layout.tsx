@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Sora } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/Providers';
+import { createClient as createServerSupabase } from '@/lib/supabase/server';
+import { toRole, type AppRole } from '@/lib/auth/roles';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -55,11 +57,35 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Resolve the session server-side so the nav renders correctly on first paint.
+  let initialUser: { id: string; email: string | null } | null = null;
+  let initialRole: AppRole | null = null;
+  let initialName: string | null = null;
+
+  const supabase = createServerSupabase();
+  if (supabase) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      initialUser = { id: user.id, email: user.email ?? null };
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, full_name')
+        .eq('id', user.id)
+        .single();
+      initialRole = toRole(profile?.role ?? user.user_metadata?.role);
+      initialName = (profile?.full_name as string) ?? (user.user_metadata?.full_name as string) ?? null;
+    }
+  }
+
   return (
     <html lang="en" className={`${inter.variable} ${sora.variable}`} suppressHydrationWarning>
       <body className="bg-ink text-white antialiased">
-        <Providers>{children}</Providers>
+        <Providers initialUser={initialUser} initialRole={initialRole} initialName={initialName}>
+          {children}
+        </Providers>
       </body>
     </html>
   );

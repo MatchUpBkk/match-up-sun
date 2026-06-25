@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useT } from '@/lib/i18n/context';
+import { useAuth } from '@/lib/auth/context';
 import { Logo } from './Logo';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { UserMenu } from './UserMenu';
 import { IconMenu, IconX } from './Icons';
 import { cn } from '@/lib/utils';
 
@@ -21,6 +23,7 @@ const links = [
 export function Navbar() {
   const t = useT();
   const pathname = usePathname();
+  const { user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -65,12 +68,18 @@ export function Navbar() {
 
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
-          <Link href="/login" className="hidden rounded-xl px-3 py-2 text-sm font-medium text-white/80 transition hover:text-white sm:inline-flex">
-            {t('nav.login')}
-          </Link>
-          <Link href="/register" className="hidden btn-primary !px-4 !py-2 text-sm sm:inline-flex">
-            {t('nav.register')}
-          </Link>
+          {user ? (
+            <UserMenu />
+          ) : (
+            <>
+              <Link href="/login" className="hidden rounded-xl px-3 py-2 text-sm font-medium text-white/80 transition hover:text-white sm:inline-flex">
+                {t('nav.login')}
+              </Link>
+              <Link href="/register" className="hidden btn-primary !px-4 !py-2 text-sm sm:inline-flex">
+                {t('nav.register')}
+              </Link>
+            </>
+          )}
           <button
             onClick={() => setOpen((o) => !o)}
             className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white lg:hidden"
@@ -90,14 +99,20 @@ export function Navbar() {
                 {t(l.key)}
               </Link>
             ))}
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <Link href="/login" className="btn-ghost">
-                {t('nav.login')}
-              </Link>
-              <Link href="/register" className="btn-primary">
-                {t('nav.register')}
-              </Link>
-            </div>
+            {user ? (
+              <div className="mt-2">
+                <UserMenu mobile />
+              </div>
+            ) : (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <Link href="/login" className="btn-ghost">
+                  {t('nav.login')}
+                </Link>
+                <Link href="/register" className="btn-primary">
+                  {t('nav.register')}
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

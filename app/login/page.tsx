@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/Logo';
 import { useI18n } from '@/lib/i18n/context';
-import { getSupabaseBrowserClient, isSupabaseConfigured } from '@/lib/supabase/client';
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
+import { dashboardPathForRole } from '@/lib/auth/roles';
 import { IconArrow } from '@/components/Icons';
 
 export default function LoginPage() {
@@ -22,14 +23,28 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (isSupabaseConfigured()) {
-        const supabase = getSupabaseBrowserClient();
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          setError(error.message);
+        const supabase = createClient();
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) {
+          setError(signInError.message);
           return;
         }
+        // Resolve role for the post-login redirect.
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        let role: unknown = user?.user_metadata?.role;
+        if (user) {
+          const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+          role = data?.role ?? role;
+        }
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get('redirect');
+        router.push(redirect && redirect.startsWith('/') ? redirect : dashboardPathForRole(role));
+        router.refresh();
+        return;
       }
-      // Demo: route to player dashboard
+      // Demo mode
       router.push('/dashboard/player');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -61,9 +76,9 @@ export default function LoginPage() {
           <div>
             <div className="flex items-center justify-between">
               <label className="label">{t('auth.password')}</label>
-              <button type="button" className="text-xs text-neon-cyan hover:underline">
+              <Link href="/reset-password" className="text-xs text-neon-cyan hover:underline">
                 {t('auth.forgot')}
-              </button>
+              </Link>
             </div>
             <input type="password" className="input" required value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>

@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/Logo';
 import { useI18n } from '@/lib/i18n/context';
-import { getSupabaseBrowserClient, isSupabaseConfigured } from '@/lib/supabase/client';
-import { IconArrow, IconBall, IconTrophy } from '@/components/Icons';
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
+import { dashboardPathForRole } from '@/lib/auth/roles';
+import { IconArrow, IconBall, IconTrophy, IconCheck } from '@/components/Icons';
 
 export default function RegisterPage() {
   const { t } = useI18n();
@@ -15,6 +16,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,18 +24,30 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       if (isSupabaseConfigured()) {
-        const supabase = getSupabaseBrowserClient();
-        const { error } = await supabase.auth.signUp({
+        const supabase = createClient();
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email: form.email,
           password: form.password,
-          options: { data: { full_name: form.name, role } },
+          options: {
+            data: { full_name: form.name, role },
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
         });
-        if (error) {
-          setError(error.message);
+        if (signUpError) {
+          setError(signUpError.message);
           return;
         }
+        // If email confirmation is required, there's no session yet.
+        if (data.session) {
+          router.push(dashboardPathForRole(role));
+          router.refresh();
+        } else {
+          setSent(true);
+        }
+        return;
       }
-      router.push(role === 'organizer' ? '/dashboard/organizer' : '/dashboard/player');
+      // Demo mode
+      router.push(dashboardPathForRole(role));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -45,6 +59,25 @@ export default function RegisterPage() {
     { key: 'player' as const, icon: IconBall, label: t('auth.role.player') },
     { key: 'organizer' as const, icon: IconTrophy, label: t('auth.role.organizer') },
   ];
+
+  if (sent) {
+    return (
+      <div className="container-x flex min-h-screen items-center justify-center py-28">
+        <div className="glass w-full max-w-md p-8 text-center">
+          <div className="flex justify-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-neon-lime/10 text-neon-lime ring-1 ring-neon-lime/30">
+              <IconCheck className="h-7 w-7" />
+            </span>
+          </div>
+          <h1 className="mt-6 text-2xl font-extrabold text-white">{t('auth.verify.title')}</h1>
+          <p className="mt-3 text-sm text-white/65">{t('auth.verify.body').replace('{email}', form.email)}</p>
+          <Link href="/login" className="btn btn-secondary mt-8 inline-flex">
+            {t('nav.login')}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container-x flex min-h-screen items-center justify-center py-28">

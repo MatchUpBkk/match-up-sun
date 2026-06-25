@@ -1,31 +1,33 @@
 'use client';
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 let browserClient: SupabaseClient | null = null;
 
+/** True when public Supabase env vars are present. */
+export function isSupabaseConfigured(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
 /**
- * Returns a memoised browser Supabase client.
- * Safe to import at build time — the client is only instantiated on first call.
+ * Cookie-aware browser Supabase client (memoised). Shares the session with the
+ * server via cookies, so SSR/middleware and the client stay in sync.
+ * Throws only if called without configuration — guard with isSupabaseConfigured().
  */
-export function getSupabaseBrowserClient(): SupabaseClient {
+export function createClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
   if (!url || !anon) {
     throw new Error(
       'Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local',
     );
   }
   if (!browserClient) {
-    browserClient = createClient(url, anon, {
-      auth: { persistSession: true, autoRefreshToken: true },
-    });
+    browserClient = createBrowserClient(url, anon);
   }
   return browserClient;
 }
 
-/** True when public Supabase env vars are present. */
-export function isSupabaseConfigured(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-}
+/** Back-compat alias. */
+export const getSupabaseBrowserClient = createClient;
