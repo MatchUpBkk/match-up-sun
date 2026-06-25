@@ -112,7 +112,23 @@ body {
     opacity: 0;
   }
   .reveal.is-visible {
-    animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: reveal-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+/* Defined here (not only in tailwind.config) so the keyframes are guaranteed to
+   be present in the compiled CSS. Tailwind only emits a config keyframe when a
+   matching `animate-*` utility is used in markup; `.reveal` calls it via raw CSS,
+   so without this block the reveal animation silently no-ops and content that is
+   `opacity: 0` by default never becomes visible. */
+@keyframes reveal-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
